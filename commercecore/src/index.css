@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    padding: 0;
+
+    @apply bg-gray-100;
+}
+
+/* Vue select styles */
+
+.vs__search::placeholder,
+.vs__dropdown-toggle,
+.vs__dropdown-menu {
+    @apply px-3 py-3 border rounded my-2;
+}
+
+.vs__clear,
+.vs__open-indicator {
+    fill: rgb( 180, 180, 180 );
+}

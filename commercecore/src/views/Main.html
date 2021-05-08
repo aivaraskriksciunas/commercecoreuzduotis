@@ -1,0 +1,151 @@
+<div>
+
+<div class='w-full bg-green-500 uppercase text-center text-xl text-white py-2 '>
+    Your 50% discount has been applied
+</div>
+<div class='w-full bg-white shadow px-24 py-4'>
+    <div class='mx-auto flex justify-start items-center'>
+        <div class='text-4xl border-r px-4 mr-4'>
+            WATCH
+        </div>
+        <div class='w-full'>
+            <i class="fas fa-shield-alt mr-3"></i> Secure Checkout
+        </div>
+        <div class=''>
+            <img class='w-32' src='https://www.vhv.rs/file/max/11/114011_norton-secured-logo-png.png'/>
+        </div>
+    </div>
+</div>
+
+<div class='w-5/6 pt-8 pb-16 mx-auto flex'>
+    <div class='w-4/6 px-2'>
+        <div class='bg-white border rounded mb-3'>
+            <div class='text-lg uppercase px-6 py-4 border-b'>
+                <i class="fas fa-layer-group mr-2"></i> Select your order quantity
+            </div>
+
+            <div class='px-6 py-4'>
+                <Product v-for='p in products' :key='p.id' 
+                    :product='p'
+                    @selected="on_product_select"
+                    :is_selected="selected_product && p.id == selected_product.id">
+                </Product>
+            </div>
+        </div>
+
+        <div class='bg-white border rounded' v-if='selected_product != null'>
+            <div class='text-lg uppercase px-6 py-4 border-b'>
+                Order summary
+            </div>
+
+            <div class='px-6 py-4'>
+                <div class='flex pb-2'>
+                    <div class='w-full'>
+                        {{ selected_product.title }}
+                    </div>
+                    <div>
+                        {{ formatPrice( selected_product.discounted_price * selected_product.amount ) }}
+                    </div>
+                </div>
+                <div v-if='warranty' class='flex border-b pb-2 border-gray-200'>
+                    <div class='w-full'>
+                        Lifetime Protection
+                    </div>
+                    <div>
+                        {{ formatPrice( 999 * selected_product.amount ) }}
+                    </div>
+                </div>
+                <div class='flex border-b pb-2 border-gray-200'>
+                    <div class='w-full'>
+                        Shipping
+                    </div>
+                    <div>
+                        {{ formatPrice( delivery_cost ) }}
+                    </div>
+                </div>
+                <div class='flex pt-2'>
+                    <div class='w-full'>
+                        Today's total:
+                    </div>
+                    <div>
+                        {{ formatPrice( calculateTotal() ) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class='w-2/6 px-2'>
+        <div class="bg-white rounded border">
+            <div class='text-lg uppercase px-6 py-4 border-b'>
+                <i class="fas fa-shield-alt mr-2"></i> Payment options
+            </div>
+            <div class='px-6'>
+                
+                <div v-if='orderErrorMsg' class='py-3 px-3 mt-3 bg-red-500 border-b-4 border-red-600 text-red-100 rounded'>
+                    {{ orderErrorMsg }}
+                </div>
+
+                <form @submit.prevent='completePurchase'>
+                    <div class='text-lg uppercase border-b py-3'>
+                        Credit card
+                    </div>
+
+                    <text-input placeholder='Credit card number' v-model='$v.cardNumber.$model'
+                        :has-error='$v.cardNumber.$error && $v.cardNumber.$dirty'
+                        icon='fas fa-credit-card'>
+                    </text-input>
+                    <text-input placeholder='Security code (CVV)' v-model='$v.cardSecurityCode.$model'
+                        :has-error='$v.cardSecurityCode.$error && $v.cardSecurityCode.$dirty'></text-input>
+                    <div class='flex items-center'>
+                        Expires:
+                        <text-input class='mx-2' placeholder='Month' v-model='$v.expirationMonth.$model'
+                            :has-error='$v.expirationMonth.$error && $v.expirationMonth.$dirty'></text-input>
+                        <text-input placeholder='Year'  v-model='$v.expirationYear.$model'
+                        :has-error='$v.expirationYear.$error && $v.expirationYear.$dirty'></text-input>
+                    </div>
+
+                    <div class='text-lg uppercase border-b py-3'>
+                        Personal information
+                    </div>
+
+                    <text-input placeholder='First name' v-model='$v.firstName.$model'
+                    :has-error='$v.firstName.$error && $v.firstName.$dirty'></text-input>
+                    <text-input placeholder='Last name' v-model='$v.lastName.$model'
+                    :has-error='$v.lastName.$error && $v.lastName.$dirty'></text-input>
+                    <text-input placeholder='Email address' v-model='$v.email.$model'
+                    :has-error='$v.email.$error && $v.email.$dirty'></text-input>
+                    <text-input placeholder='Phone number' v-model='$v.phone.$model'
+                    :has-error='$v.phone.$error && $v.phone.$dirty'></text-input>
+
+                    <div class='text-lg uppercase border-b py-3'>
+                        Shipping information
+                    </div>
+
+                    <text-input placeholder='Address' v-model='$v.address.$model'
+                    :has-error='$v.address.$error && $v.address.$dirty'></text-input>
+                    <v-select placeholder='Country' :options='country_list' label='name'
+                        @input='getCountryInfo' v-model='$v.country.$model' :reduce='c => c.isoCode'></v-select>
+                    <v-select placeholder='State' :options='state_list' label='name'
+                        @input='getStateInfo' v-model='$v.state.$model' :reduce='c => c.isoCode'></v-select>
+                    <v-select placeholder='City' :options='city_list' label='name'
+                        v-model='$v.city.$model' :reduce='c => c.name'></v-select>
+                    <text-input placeholder='ZIP/Post code' v-model='$v.postcode.$model'
+                        :has-error='$v.postcode.$error && $v.postcode.$dirty'></text-input>
+                    
+                    <input type='submit' value='COMPLETE PURCHASE' v-if='selected_product'
+                        class='bg-green-500 border-b-4 border-green-600 text-white w-full mt-3 py-3 hover:bg-green-400 hover:border-green-500 font-bold rounded cursor-pointer'>
+                    <div v-else
+                        class='bg-gray-500 border-b-4 select-none uppercase text-center border-gray-600 text-white w-full mt-3 py-3 hover:bg-gray-400 hover:border-gray-500 font-bold rounded'>
+                        COMPLETE PURCHASE 
+                    </div>
+                    <div class='text-center text-sm font-medium py-2 mb-4'>
+                        <i class="fas fa-lock"></i> 256-bit SSL Encrypted Checkout
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
